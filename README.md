@@ -27,7 +27,7 @@ To get a local copy up and running, follow these simple steps.
 ## Install flutter packages
 flutter pub get
 
-##to run
+## To run
 flutter pub get
 
 
