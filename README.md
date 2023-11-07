@@ -6,7 +6,7 @@
 This Flutter app is a digital chess game allowing users to play chess on their mobile devices or web browsers. The app features user authentication, a dynamic chessboard interface, and real-time gameplay.
 
 ## Features
-- **User Authentication**: Secure sign-in and registration functionality.
+- **User Authentication**: Secure sign-in and registration functionality with email and phone number.
 - **Interactive Chessboard**: Play chess with a user-friendly digital board.
 - **Cross-Platform Compatibility**: Available on both mobile and web platforms.
 
