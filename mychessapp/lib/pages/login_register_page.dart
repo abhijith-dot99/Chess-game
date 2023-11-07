@@ -15,7 +15,8 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
 
   String errorMessage = '';
   String _verificationId = '';
-  bool isEmailLogin = true; // Toggle between email and phone login
+  bool isEmailLogin = true; // To track if the user selects email login
+  bool showInputFields = false; // To control the visibility of input fields
 
   @override
   void dispose() {
@@ -95,13 +96,16 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
     }
   }
 
-  Widget entryField(String title, TextEditingController controller, bool isPassword) {
-    return TextFormField(
-      controller: controller,
-      obscureText: isPassword,
-      decoration: InputDecoration(
-        labelText: title,
-        border: OutlineInputBorder(),
+  Widget entryField(String title, TextEditingController controller, bool isPassword, {double bottomPadding = 10}) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomPadding),
+      child: TextFormField(
+        controller: controller,
+        obscureText: isPassword,
+        decoration: InputDecoration(
+          labelText: title,
+          border: OutlineInputBorder(),
+        ),
       ),
     );
   }
@@ -121,25 +125,21 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
           onPressed: () {
             setState(() {
               isEmailLogin = true;
-              _verificationId = '';
+              showInputFields = true;
+              _verificationId = ''; // Reset verification ID if switching back
             });
           },
           child: Text('Email Login'),
-          style: ElevatedButton.styleFrom(
-            primary: isEmailLogin ? Colors.blue : Colors.grey,
-          ),
         ),
         SizedBox(width: 10),
         ElevatedButton(
           onPressed: () {
             setState(() {
               isEmailLogin = false;
+              showInputFields = true;
             });
           },
           child: Text('Phone Login'),
-          style: ElevatedButton.styleFrom(
-            primary: !isEmailLogin ? Colors.blue : Colors.grey,
-          ),
         ),
       ],
     );
@@ -165,29 +165,29 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
               ),
               const SizedBox(height: 20),
               loginMethodToggle(),
-              const SizedBox(height: 20),
-              if (isEmailLogin) ...[
-                entryField('Email', emailController, false),
-                const SizedBox(height: 10),
-                entryField('Password', passwordController, true),
+              if (showInputFields) ...[
                 const SizedBox(height: 20),
-                submitButton('Sign In with Email', signInWithEmailAndPassword),
-                const SizedBox(height: 10),
-                submitButton('Register with Email', createUserWithEmailAndPassword),
-              ] else ...[
-                if (_verificationId.isEmpty)
-                  entryField('Phone Number', phoneController, false),
-                if (_verificationId.isNotEmpty)
-                  entryField('OTP', otpController, false),
-                if (_verificationId.isEmpty)
-                  submitButton('Send OTP', verifyPhoneNumber),
-                if (_verificationId.isNotEmpty)
-                  submitButton('Verify OTP', signInWithOTP),
+                if (isEmailLogin) ...[
+                  entryField('Email', emailController, false),
+                  entryField('Password', passwordController, true, bottomPadding: 0),
+                  const SizedBox(height: 20),
+                  submitButton('Sign In with Email', signInWithEmailAndPassword),
+                  const SizedBox(height: 10),
+                  submitButton('Register with Email', createUserWithEmailAndPassword),
+                ] else ...[
+                  entryField('Phone Number', phoneController, false, bottomPadding: 20),
+                  if (_verificationId.isNotEmpty)
+                    entryField('OTP', otpController, false, bottomPadding: 0),
+                  if (_verificationId.isEmpty)
+                    submitButton('Send OTP', verifyPhoneNumber),
+                  if (_verificationId.isNotEmpty)
+                    submitButton('Verify OTP', signInWithOTP),
+                ],
               ],
               if (errorMessage.isNotEmpty)
                 Text(
                   errorMessage,
-                  style: const TextStyle(color: Colors.red),
+                  style: TextStyle(color: Colors.red),
                   textAlign: TextAlign.center,
                 ),
             ],
