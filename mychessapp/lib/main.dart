@@ -20,7 +20,7 @@ class ChessApp extends StatelessWidget {
     return MaterialApp(
       title: 'Chess Game',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: WidgetTree(),
+      home: const WidgetTree(),
       // home: const ChessBoard(),
       debugShowCheckedModeBanner: false,
     );

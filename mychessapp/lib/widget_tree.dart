@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mychessapp/main.dart';
-import 'pages/home_page.dart';
 import 'pages/login_register_page.dart';
 
 class WidgetTree extends StatelessWidget {
