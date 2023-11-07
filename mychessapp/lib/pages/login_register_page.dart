@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginRegisterPage extends StatefulWidget {
-  const LoginRegisterPage({super.key});
-
   @override
-  // ignore: library_private_types_in_public_api
   _LoginRegisterPageState createState() => _LoginRegisterPageState();
 }
 
@@ -18,6 +15,7 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
 
   String errorMessage = '';
   String _verificationId = '';
+  bool isEmailLogin = true; // Toggle between email and phone login
 
   @override
   void dispose() {
@@ -103,7 +101,7 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
       obscureText: isPassword,
       decoration: InputDecoration(
         labelText: title,
-        border: const OutlineInputBorder(),
+        border: OutlineInputBorder(),
       ),
     );
   }
@@ -115,11 +113,43 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
     );
   }
 
+  Widget loginMethodToggle() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              isEmailLogin = true;
+              _verificationId = '';
+            });
+          },
+          child: Text('Email Login'),
+          style: ElevatedButton.styleFrom(
+            primary: isEmailLogin ? Colors.blue : Colors.grey,
+          ),
+        ),
+        SizedBox(width: 10),
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              isEmailLogin = false;
+            });
+          },
+          child: Text('Phone Login'),
+          style: ElevatedButton.styleFrom(
+            primary: !isEmailLogin ? Colors.blue : Colors.grey,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Hi, there"),
+        title: Text("Hi, there"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -134,26 +164,30 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
-              entryField('Email', emailController, false),
-              const SizedBox(height: 10),
-              entryField('Password', passwordController, true),
+              loginMethodToggle(),
               const SizedBox(height: 20),
-              submitButton('Sign In with Email', signInWithEmailAndPassword),
-              const SizedBox(height: 10),
-              submitButton('Register with Email', createUserWithEmailAndPassword),
-              const SizedBox(height: 20),
-              if (_verificationId.isEmpty)
-                entryField('Phone Number', phoneController, false),
-              if (_verificationId.isNotEmpty)
-                entryField('OTP', otpController, false),
-              if (_verificationId.isEmpty)
-                submitButton('Send OTP', verifyPhoneNumber),
-              if (_verificationId.isNotEmpty)
-                submitButton('Verify OTP', signInWithOTP),
+              if (isEmailLogin) ...[
+                entryField('Email', emailController, false),
+                const SizedBox(height: 10),
+                entryField('Password', passwordController, true),
+                const SizedBox(height: 20),
+                submitButton('Sign In with Email', signInWithEmailAndPassword),
+                const SizedBox(height: 10),
+                submitButton('Register with Email', createUserWithEmailAndPassword),
+              ] else ...[
+                if (_verificationId.isEmpty)
+                  entryField('Phone Number', phoneController, false),
+                if (_verificationId.isNotEmpty)
+                  entryField('OTP', otpController, false),
+                if (_verificationId.isEmpty)
+                  submitButton('Send OTP', verifyPhoneNumber),
+                if (_verificationId.isNotEmpty)
+                  submitButton('Verify OTP', signInWithOTP),
+              ],
               if (errorMessage.isNotEmpty)
                 Text(
                   errorMessage,
-                  style: TextStyle(color: Colors.red),
+                  style: const TextStyle(color: Colors.red),
                   textAlign: TextAlign.center,
                 ),
             ],
