@@ -4,7 +4,10 @@ import 'dart:async';
 import 'widget_tree.dart'; // Make sure this import points to your WidgetTree file
 
 class ChessSplashScreen extends StatefulWidget {
+  const ChessSplashScreen({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _ChessSplashScreenState createState() => _ChessSplashScreenState();
 }
 
@@ -16,16 +19,16 @@ class _ChessSplashScreenState extends State<ChessSplashScreen> {
     super.initState();
 
     // Start the icon fade-in animation after a delay
-    Timer(Duration(seconds: 1), () {
+    Timer(const Duration(seconds: 1), () {
       setState(() {
         _iconOpacity = 1.0; // Fade in the icon
       });
     });
 
     // Navigate to the main content after some delay
-    Future.delayed(Duration(seconds: 4), () {
+    Future.delayed(const Duration(seconds: 4), () {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => WidgetTree()),
+        MaterialPageRoute(builder: (context) => const WidgetTree()),
       );
     });
   }
@@ -40,7 +43,7 @@ class _ChessSplashScreenState extends State<ChessSplashScreen> {
             Image.asset('assets/king.jpg', width: 100, height: 100),
             AnimatedOpacity(
               opacity: _iconOpacity,
-              duration: Duration(seconds: 2),
+              duration: const Duration(seconds: 2),
               child: Image.asset('assets/location.jpg', width: 40, height: 40),
             ),
           ],

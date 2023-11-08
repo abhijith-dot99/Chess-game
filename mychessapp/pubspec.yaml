@@ -26,6 +26,14 @@ flutter:
     - assets/location.jpg
 
 dev_dependencies:
+  flutter_launcher_icons: ^0.13.1
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
+
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/appicon.png" # Replace with your icon file's path
+  adaptive_icon_background: "#FFFFFF" # Optional: Background color for Android adaptive icon
