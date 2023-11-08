@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:chess/chess.dart' as chess;
 import 'package:mychessapp/widget_tree.dart';
+import 'package:mychessapp/splash.dart';
 
 
 // void main() => runApp(ChessApp());
@@ -20,7 +21,8 @@ class ChessApp extends StatelessWidget {
     return MaterialApp(
       title: 'Chess Game',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const WidgetTree(),
+      // home: const WidgetTree(),
+       home: ChessSplashScreen(), 
       // home: const ChessBoard(),
       debugShowCheckedModeBanner: false,
     );

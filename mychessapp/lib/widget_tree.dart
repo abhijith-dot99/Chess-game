@@ -18,7 +18,7 @@ class WidgetTree extends StatelessWidget {
             // return const HomePage();
             return const ChessBoard();
           } else {
-            return LoginRegisterPage(); // No user is logged in, show LoginPage
+            return const LoginRegisterPage(); // No user is logged in, show LoginPage
           }
         }
 

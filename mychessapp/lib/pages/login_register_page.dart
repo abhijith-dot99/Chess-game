@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginRegisterPage extends StatefulWidget {
+  const LoginRegisterPage({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _LoginRegisterPageState createState() => _LoginRegisterPageState();
 }
 
@@ -139,7 +142,7 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
               showInputFields = true;
             });
           },
-          child: Text('Phone Login'),
+          child: const Text('Phone Login'),
         ),
       ],
     );
@@ -149,7 +152,7 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Hi, there"),
+        title: const Text("Hi, there"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -177,7 +180,7 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
                 ] else ...[
                   entryField('Phone Number', phoneController, false, bottomPadding: 20),
                   if (_verificationId.isNotEmpty)
-                    entryField('OTP', otpController, false, bottomPadding: 0),
+                    entryField('OTP', otpController, false, bottomPadding: 20),
                   if (_verificationId.isEmpty)
                     submitButton('Send OTP', verifyPhoneNumber),
                   if (_verificationId.isNotEmpty)
@@ -187,7 +190,7 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
               if (errorMessage.isNotEmpty)
                 Text(
                   errorMessage,
-                  style: TextStyle(color: Colors.red),
+                  style: const TextStyle(color: Colors.red),
                   textAlign: TextAlign.center,
                 ),
             ],

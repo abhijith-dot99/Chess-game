@@ -35,7 +35,9 @@ class AuthService {
       User? user = result.user;
       return _userFromFirebaseUser(user);
     } catch (error) {
-      print(error.toString());
+      if (kDebugMode) {
+        print(error.toString());
+      }
       return null;
     }
   }
@@ -45,7 +47,9 @@ class AuthService {
     try {
       return await _auth.signOut();
     } catch (error) {
-      print(error.toString());
+      if (kDebugMode) {
+        print(error.toString());
+      }
       return null;
     }
   }
