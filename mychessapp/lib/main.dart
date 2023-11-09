@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:chess/chess.dart' as chess;
@@ -5,7 +6,7 @@ import 'package:mychessapp/widget_tree.dart';
 import 'package:mychessapp/splash.dart';
 
 
-// void main() => runApp(ChessApp());
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,17 +17,30 @@ Future<void> main() async {
 class ChessApp extends StatelessWidget {
   const ChessApp({super.key});
 
-  @override
-  Widget build(BuildContext context) {
+  @override 
+   Widget build(BuildContext context) {
+    // Define a custom MaterialColor based on black
+    MaterialColor primaryBlack = const MaterialColor(0xFF000000, {
+      50: Color(0xFF000000),
+      100: Color(0xFF000000),
+      200: Color(0xFF000000),
+      300: Color(0xFF000000),
+      400: Color(0xFF000000),
+      500: Color(0xFF000000),
+      600: Color(0xFF000000),
+      700: Color(0xFF000000),
+      800: Color(0xFF000000),
+      900: Color(0xFF000000),
+    });
+
     return MaterialApp(
       title: 'Chess Game',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      // home: const WidgetTree(),
-       home: ChessSplashScreen(), 
-      // home: const ChessBoard(),
+      theme: ThemeData(primarySwatch: primaryBlack), // Use the custom primaryBlack MaterialColor
+      home: const ChessSplashScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
+
 }
 
 class ChessBoard extends StatefulWidget {
@@ -36,6 +50,8 @@ class ChessBoard extends StatefulWidget {
   // ignore: library_private_types_in_public_api
   _ChessBoardState createState() => _ChessBoardState();
 }
+
+// class _ChessBoardState extends State<ChessBoard> with WidgetsBindingObserver
 
 class _ChessBoardState extends State<ChessBoard> {
   final game = chess.Chess();
@@ -158,7 +174,7 @@ class _ChessBoardState extends State<ChessBoard> {
                       showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
-                          title: Text('Game Over'),
+                          title: const Text('Game Over'),
                           content: Text(status),
                           actions: [
                             TextButton(
@@ -170,7 +186,7 @@ class _ChessBoardState extends State<ChessBoard> {
                                   blackCapturedPieces.clear();
                                 });
                               },
-                              child: Text('Restart'),
+                              child: const Text('Restart'),
                             ),
                           ],
                         ),
@@ -222,4 +238,45 @@ class _ChessBoardState extends State<ChessBoard> {
       ),
     );
   }
+
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   WidgetsBinding.instance.addObserver(this);
+  //   _updateUserStatus(true); // Set user status to online when the app starts
+  // }
+
+  // @override
+  // void dispose() {
+  //   _updateUserStatus(false); // Set user status to offline when the app closes
+  //   WidgetsBinding.instance.removeObserver(this);
+  //   super.dispose();
+  // }
+
+  // @override
+  // void didChangeAppLifecycleState(AppLifecycleState state) {
+  //   if (state == AppLifecycleState.resumed) {
+  //     _updateUserStatus(true);
+  //   } else if (state == AppLifecycleState.paused) {
+  //     _updateUserStatus(false);
+  //   }
+  // }
+
+  // Future<void> _updateUserStatus(bool isOnline) async {
+  //   String userId = "HkwzGBKFJHPUnOqyEAb7RPisH4q1"; // Replace with actual user ID
+  //   await FirebaseFirestore.instance
+  //       .collection('users')
+  //       .doc(userId)
+  //       .update({'isOnline': isOnline});
+  // }
+
+
 }
+
+
+
+
+
+
+  
