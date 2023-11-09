@@ -5,7 +5,6 @@ import 'package:mychessapp/widget_tree.dart';
 import 'package:mychessapp/splash.dart';
 
 
-// void main() => runApp(ChessApp());
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,13 +16,25 @@ class ChessApp extends StatelessWidget {
   const ChessApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+ Widget build(BuildContext context) {
+    // Define a custom MaterialColor based on black
+    MaterialColor primaryBlack = const MaterialColor(0xFF000000, {
+      50: Color(0xFF000000),
+      100: Color(0xFF000000),
+      200: Color(0xFF000000),
+      300: Color(0xFF000000),
+      400: Color(0xFF000000),
+      500: Color(0xFF000000),
+      600: Color(0xFF000000),
+      700: Color(0xFF000000),
+      800: Color(0xFF000000),
+      900: Color(0xFF000000),
+    });
+
     return MaterialApp(
       title: 'Chess Game',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      // home: const WidgetTree(),
-       home: ChessSplashScreen(), 
-      // home: const ChessBoard(),
+      theme: ThemeData(primarySwatch: primaryBlack), // Use the custom primaryBlack MaterialColor
+      home: const ChessSplashScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
@@ -50,7 +61,7 @@ class _ChessBoardState extends State<ChessBoard> {
   String getPieceAbbreviation(chess.PieceType type) {
     switch (type) {
       case chess.PieceType.PAWN:
-        return '♙';
+        return '♙';  
       case chess.PieceType.KNIGHT:
         return '♘';
       case chess.PieceType.BISHOP:
@@ -219,6 +230,10 @@ class _ChessBoardState extends State<ChessBoard> {
             ),
           );
         },
+
+
+
+
       ),
     );
   }
