@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:mychessapp/main.dart';
-import 'package:mychessapp/pages/home_page.dart'; // Make sure this import is correct
+import 'package:mychessapp/pages/userhome.dart';
+import 'package:mychessapp/pages/userhome.dart'; // Import UserHomePage
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({Key? key}) : super(key: key);
@@ -14,7 +14,7 @@ class UserProfilePage extends StatefulWidget {
 class _UserProfilePageState extends State<UserProfilePage> {
   final TextEditingController _nameController = TextEditingController();
   String? _selectedLocation;
-  final List<String> _locations = ['Location 1', 'Location 2', 'Location 3']; // Example locations
+  final List<String> _locations = ['Location 1', 'Location 2', 'Location 3'];
 
   @override
   void dispose() {
@@ -31,22 +31,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
         await users.doc(userId).set({
           'name': _nameController.text,
           'location': _selectedLocation,
-          'profileCreated': true,
         });
 
-        // ignore: use_build_context_synchronously
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const ChessBoard()),
+          MaterialPageRoute(builder: (context) => const UserHomePage()),
         );
       } catch (e) {
-        // Handle errors appropriately
-        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error creating profile: $e')),
         );
       }
     } else {
-      // Handle case where fields are empty
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please fill in all fields')),
       );
