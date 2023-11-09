@@ -132,9 +132,9 @@ class _LoginRegisterPageState extends State<LoginRegisterPage> {
               _verificationId = ''; // Reset verification ID if switching back
             });
           },
-          child: const Text('Email Login'),
+          child: Text('Email Login'),
         ),
-        const SizedBox(width: 10),
+        SizedBox(width: 10),
         ElevatedButton(
           onPressed: () {
             setState(() {
