@@ -1,20 +1,23 @@
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:mychessapp/main.dart';
-import 'package:mychessapp/pages/chess_board.dart';
-import 'package:mychessapp/pages/userprofiledetails.dart'; // Import UserProfileDetailsPage
+import 'package:mychessapp/pages/userprofiledetails.dart';
+import '../main.dart';
 
 class UserHomePage extends StatelessWidget {
   const UserHomePage({Key? key}) : super(key: key);
 
-  Future<Map<String, dynamic>?> fetchUserProfile() async {
-    String userId = FirebaseAuth.instance.currentUser!.uid;
-    DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
-    return userDoc.exists ? userDoc.data() as Map<String, dynamic> : null;
+  Future<Map<String, dynamic>?> fetchCurrentUserProfile() async {
+    var user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      var doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      return doc.exists ? doc.data() as Map<String, dynamic> : null;
+    }
+    return null;
   }
 
-  Stream<List<DocumentSnapshot>> fetchUsersInSameLocation(String location) {
+  Stream<List<DocumentSnapshot>> fetchOnlineUsers(String location) {
     return FirebaseFirestore.instance
         .collection('users')
         .where('isOnline', isEqualTo: true)
@@ -29,66 +32,63 @@ class UserHomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Online Players'),
         actions: [
-          FutureBuilder<Map<String, dynamic>?>(
-            future: fetchUserProfile(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
-                String initial = snapshot.data!['name'][0].toUpperCase();
-                return IconButton(
-                  icon: CircleAvatar(child: Text(initial)),
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const UserProfileDetailsPage()),
-                  ),
-                );
-              }
-              return const CircleAvatar(child: Text('?'));
+          IconButton(
+            icon: const Icon(Icons.account_circle),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const UserProfileDetailsPage()),
+              );
             },
           ),
         ],
       ),
       body: FutureBuilder<Map<String, dynamic>?>(
-        future: fetchUserProfile(),
+        future: fetchCurrentUserProfile(),
         builder: (context, userSnapshot) {
           if (userSnapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final String currentUserLocation = userSnapshot.data?['location'] ?? 'Unknown';
-          final String currentUserName = userSnapshot.data?['name'] ?? 'Player';
+          if (userSnapshot.data == null) {
+            return const Center(child: Text('Error fetching user data'));
+          }
+
+          String userName = userSnapshot.data?['name'] ?? 'Player';
+          String userLocation = userSnapshot.data?['location'] ?? 'Unknown';
 
           return Column(
             children: [
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Text('Hi, $currentUserName', style: Theme.of(context).textTheme.headline6),
+                child: Text('Hi, $userName', style: Theme.of(context).textTheme.headline6),
               ),
               Expanded(
                 child: StreamBuilder<List<DocumentSnapshot>>(
-                  stream: fetchUsersInSameLocation(currentUserLocation),
+                  stream: fetchOnlineUsers(userLocation),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
+                      return const CircularProgressIndicator();
                     }
 
                     if (!snapshot.hasData || snapshot.data!.isEmpty) {
                       return const Center(child: Text('No online players in your location'));
                     }
 
-                    List<DocumentSnapshot> users = snapshot.data!;
-                    return ListView.builder(
-                      itemCount: users.length,
+                    return GridView.builder(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2, // Two profiles per row
+                        childAspectRatio: 3 / 2, // Adjust the ratio as needed
+                      ),
+                      itemCount: snapshot.data!.length,
                       itemBuilder: (context, index) {
-                        var userData = users[index].data() as Map<String, dynamic>;
-                        if (userData['uid'] == FirebaseAuth.instance.currentUser!.uid) {
-                          return const SizedBox.shrink(); // Don't display the current user
-                        }
+                        var userData = snapshot.data![index].data() as Map<String, dynamic>;
                         String initial = userData['name'][0].toUpperCase();
-                        return ListTile(
-                          leading: CircleAvatar(
-                            child: Text(initial),
+                        return Card(
+                          child: ListTile(
+                            leading: CircleAvatar(child: Text(initial)),
+                            title: Text(userData['name']),
+                            subtitle: Text(userData['location'] ?? 'Unknown location'),
                           ),
-                          title: Text(userData['name']),
-                          subtitle: Text(userData['location'] ?? 'Unknown location'),
                         );
                       },
                     );
@@ -103,8 +103,8 @@ class UserHomePage extends StatelessWidget {
         onPressed: () => Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const ChessBoard()),
         ),
-        tooltip: 'Start Game',
         child: const Icon(Icons.play_arrow),
+        tooltip: 'Start Game',
       ),
     );
   }

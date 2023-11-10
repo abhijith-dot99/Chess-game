@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:mychessapp/main.dart';
-import 'package:mychessapp/pages/chess_board.dart';  // Make sure the path is correct
+// Make sure the path is correct
 import 'package:mychessapp/pages/login_register_page.dart';
 import 'package:mychessapp/pages/userhome.dart';
 import 'package:mychessapp/user_profile.dart';  // Make sure the path is correct

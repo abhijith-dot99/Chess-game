@@ -1,7 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:chess/chess.dart' as chess;
-import 'package:mychessapp/widget_tree.dart';
 import 'package:mychessapp/splash.dart';
 
 
@@ -230,9 +229,6 @@ class _ChessBoardState extends State<ChessBoard> {
             ),
           );
         },
-
-
-
 
       ),
     );
