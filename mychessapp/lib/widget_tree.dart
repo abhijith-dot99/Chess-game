@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mychessapp/main.dart';
 import 'package:mychessapp/pages/chess_board.dart';  // Make sure the path is correct
 import 'package:mychessapp/pages/login_register_page.dart';
+import 'package:mychessapp/pages/userhome.dart';
 import 'package:mychessapp/user_profile.dart';  // Make sure the path is correct
 
 class WidgetTree extends StatelessWidget {
@@ -24,7 +25,7 @@ class WidgetTree extends StatelessWidget {
                 if (userSnapshot.connectionState == ConnectionState.done) {
                   if (userSnapshot.data != null && userSnapshot.data!.exists) {
                     // User profile exists, navigate to ChessBoard
-                    return const ChessBoard();
+                    return const UserHomePage();
                   } else {
                     // User profile does not exist, navigate to UserProfilePage
                     return const UserProfilePage();

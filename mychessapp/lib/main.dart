@@ -91,8 +91,8 @@ class _ChessBoardState extends State<ChessBoard> {
           final squareName = '${String.fromCharCode(97 + file)}${rank + 1}';
           final piece = game.get(squareName);
           var backgroundColor = (file + rank) % 2 == 0
-              ? const Color.fromARGB(255, 142, 202, 76)
-              : const Color.fromARGB(255, 191, 80, 40);
+              ? Color.fromARGB(255, 203, 208, 198)
+              : Color.fromARGB(255, 99, 97, 95);
 
           // Declare a border variable
           Border? border;
