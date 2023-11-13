@@ -24,7 +24,8 @@ class WidgetTree extends StatelessWidget {
                 if (userSnapshot.connectionState == ConnectionState.done) {
                   if (userSnapshot.data != null && userSnapshot.data!.exists) {
                     // User profile exists, navigate to ChessBoard
-                    return const UserHomePage();
+                    // return const UserHomePage();
+                     return UserHomePage();
                   } else {
                     // User profile does not exist, navigate to UserProfilePage
                     return const UserProfilePage();
