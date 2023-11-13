@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -141,34 +142,50 @@ class UserHomePageState extends State<UserHomePage> {
       },
     );
   }
-  void _sendChallenge(String opponentId, String betAmount) async {
-    String challengerId = FirebaseAuth.instance.currentUser!.uid;
-    CollectionReference challenges = FirebaseFirestore.instance.collection('challenges');
-    DocumentReference challengeDoc = await challenges.add({
-      'challengerId': challengerId,
-      'opponentId': opponentId,
-      'betAmount': betAmount,
-      'status': 'pending', // Initial status of the challenge
-      'timestamp': FieldValue.serverTimestamp(), // Optional: For ordering or timing out challenges
-    });
-    // Send a notification to the opponent about the new challenge
-    // This could be a push notification or an in-app update
-    // For now, we'll assume a simple Firestore update that the opponent's app listens to
-    FirebaseFirestore.instance.collection('users').doc(opponentId).collection('notifications').add({
-      'type': 'challenge',
-      'message': 'You have been challenged to a game!',
-      'challengeId': challengeDoc.id, // Reference to the challenge
-      'betAmount': betAmount,
-      'challengerId': challengerId,
-      'timestamp': FieldValue.serverTimestamp(),
-    });
+Future<void> _sendChallenge(String opponentId, String betAmount) async {
+  String challengerId = FirebaseAuth.instance.currentUser!.uid;
+  CollectionReference challenges = FirebaseFirestore.instance.collection('challenges');
 
-    ScaffoldMessenger.of(context as BuildContext).showSnackBar(
-      const SnackBar(content: Text('Challenge sent successfully')),
-    );
+  return challenges.add({
+    'challengerId': challengerId,
+    'opponentId': opponentId,
+    'betAmount': betAmount,
+    'status': 'pending',
+    'timestamp': FieldValue.serverTimestamp(),
+  }).then((docRef) {
+    // Challenge created successfully
+    // You can now notify the opponent
+    notifyOpponent(opponentId, docRef.id, challengerId, betAmount);
+  }).catchError((error) {
+     // Check if the opponentId and betAmount are not null.
+ 
+    if (kDebugMode) {
+      print('Opponent ID or Bet Amount is null');
+    }
+ 
+    // Handle any errors here
+  });
+
+  
+}
 
 
-  }
+Future<void> notifyOpponent(String opponentId, String challengeId, String challengerId, String betAmount) async {
+  DocumentReference userRef = FirebaseFirestore.instance.collection('users').doc(opponentId);
+
+  return userRef.collection('notifications').add({
+    'type': 'challenge',
+    'challengeId': challengeId,
+    'challengerId': challengerId,
+    'betAmount': betAmount,
+    'timestamp': FieldValue.serverTimestamp(),
+  }).then((_) {
+    // Notification added successfully
+  }).catchError((error) {
+    // Handle any errors here
+  });
+}
+
 
   @override
   Widget build(BuildContext context) {

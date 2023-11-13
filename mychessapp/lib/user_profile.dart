@@ -29,6 +29,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         CollectionReference users = FirebaseFirestore.instance.collection('users');
         String userId = FirebaseAuth.instance.currentUser!.uid;
         await users.doc(userId).set({
+          'uid': userId,
           'name': _nameController.text,
           'location': _selectedLocation,
           'avatar': _selectedAvatar,
