@@ -1,13 +1,18 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:chess/chess.dart' as chess;
-import 'package:mychessapp/splash.dart';
-
-
+import 'package:mychessapp/splash.dart';  // Make sure this path is correct
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: const FirebaseOptions(apiKey: "AIzaSyA5LntFnqarzEsZoDAx8WuO98rnLaZjFzA", appId: "1:820296910788:web:00ca69115e86ddd8cd8691", messagingSenderId: "820296910788", projectId: "chessapp-68652"));
+  await Firebase.initializeApp(options: const FirebaseOptions(
+    apiKey: "AIzaSyA5LntFnqarzEsZoDAx8WuO98rnLaZjFzA",
+    appId: "1:820296910788:web:00ca69115e86ddd8cd8691",
+    messagingSenderId: "820296910788",
+    projectId: "chessapp-68652"
+  ));
   runApp(const ChessApp());
 }
 
@@ -15,8 +20,7 @@ class ChessApp extends StatelessWidget {
   const ChessApp({super.key});
 
   @override
- Widget build(BuildContext context) {
-    // Define a custom MaterialColor based on black
+  Widget build(BuildContext context) {
     MaterialColor primaryBlack = const MaterialColor(0xFF000000, {
       50: Color(0xFF000000),
       100: Color(0xFF000000),
@@ -32,7 +36,7 @@ class ChessApp extends StatelessWidget {
 
     return MaterialApp(
       title: 'Chess Game',
-      theme: ThemeData(primarySwatch: primaryBlack), // Use the custom primaryBlack MaterialColor
+      theme: ThemeData(primarySwatch: primaryBlack),
       home: const ChessSplashScreen(),
       debugShowCheckedModeBanner: false,
     );
@@ -47,9 +51,11 @@ class ChessBoard extends StatefulWidget {
   _ChessBoardState createState() => _ChessBoardState();
 }
 
-class _ChessBoardState extends State<ChessBoard> {
+class _ChessBoardState extends State<ChessBoard> with WidgetsBindingObserver {
   final game = chess.Chess();
+  // ... rest of your chess game state variables ...
 
+  
   List<String> whiteCapturedPieces = [];
   List<String> blackCapturedPieces = [];
 
@@ -76,16 +82,50 @@ class _ChessBoardState extends State<ChessBoard> {
     }
   }
 
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance!.addObserver(this);
+    _updateUserOnlineStatus(true); // Set the user online when the app starts
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance!.removeObserver(this);
+    _updateUserOnlineStatus(false); // Set the user offline when the app is closed
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (FirebaseAuth.instance.currentUser != null) {
+      if (state == AppLifecycleState.paused) {
+        _updateUserOnlineStatus(false); // Set offline when app is in background
+      } else if (state == AppLifecycleState.resumed) {
+        _updateUserOnlineStatus(true); // Set online when app is in foreground
+      }
+    }
+  }
+
+  void _updateUserOnlineStatus(bool isOnline) async {
+    String userId = FirebaseAuth.instance.currentUser!.uid;
+    await FirebaseFirestore.instance.collection('users').doc(userId).update({'isOnline': isOnline});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: null, // Remove the app bar
       body: GridView.builder(
         itemCount: 64,
-        gridDelegate:
-            const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 8),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 8),
         itemBuilder: (context, index) {
-          final int file = index % 8;
+          // ... your existing GridView builder logic ...
+
+
+
+           final int file = index % 8;
           final int rank = 7 - index ~/ 8;
           final squareName = '${String.fromCharCode(97 + file)}${rank + 1}';
           final piece = game.get(squareName);
@@ -229,7 +269,6 @@ class _ChessBoardState extends State<ChessBoard> {
             ),
           );
         },
-
       ),
     );
   }

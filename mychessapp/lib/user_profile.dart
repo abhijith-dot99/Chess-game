@@ -35,7 +35,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
           'isOnline': true,
         });
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const UserHomePage()),
+          MaterialPageRoute(builder: (context) => UserHomePage()),
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
