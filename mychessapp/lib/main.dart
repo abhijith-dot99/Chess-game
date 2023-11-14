@@ -86,13 +86,13 @@ class _ChessBoardState extends State<ChessBoard> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance!.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     _updateUserOnlineStatus(true); // Set the user online when the app starts
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance!.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     _updateUserOnlineStatus(false); // Set the user offline when the app is closed
     super.dispose();
   }

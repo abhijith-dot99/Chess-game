@@ -7,8 +7,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mychessapp/pages/userprofiledetails.dart';
 
 import '../main.dart';
-import '../userprofiledetails.dart';
 import 'UserDetails.dart';
+import 'challenge_request_screen.dart'; 
 
 class UserHomePage extends StatefulWidget {
   const UserHomePage({Key? key}) : super(key: key);
@@ -21,6 +21,7 @@ class UserHomePageState extends State<UserHomePage> {
   late Stream<List<DocumentSnapshot>> onlineUsersStream;
   String userLocation = 'Unknown';
   late StreamSubscription<DocumentSnapshot> userSubscription;
+   late StreamSubscription<QuerySnapshot> challengeRequestsSubscription;
 
   // Declare betAmount as a class field
   String betAmount = '5\$'; // Default value
@@ -29,7 +30,52 @@ class UserHomePageState extends State<UserHomePage> {
   void initState() {
     super.initState();
     setupUserListener();
+    listenToChallengeRequests();
   }
+
+
+
+  //new change
+  
+  void listenToChallengeRequests() {
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUserId != null) {
+      challengeRequestsSubscription = FirebaseFirestore.instance
+          .collection('challengeRequests')
+          .where('opponentId', isEqualTo: currentUserId)
+          .where('status', isEqualTo: 'pending')
+          .snapshots()
+          .listen((snapshot) {
+            for (var change in snapshot.docChanges) {
+              if (change.type == DocumentChangeType.added) {
+                var challengeData = change.doc.data() as Map<String, dynamic>;
+                String challengerId = challengeData['challengerId'];
+                String betAmount = challengeData['betAmount'];
+                // Fetch the challenger's user data such as name
+                FirebaseFirestore.instance.collection('users').doc(challengerId).get().then((userDoc) {
+                  if (userDoc.exists) {
+                    var challengerData = userDoc.data() as Map<String, dynamic>;
+                    String challengerName = challengerData['name'];
+                    // Show the challenge request dialog
+                    showDialog<bool>(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return ChallengeRequestScreen(challengerName: challengerName, betAmount: betAmount);
+                      },
+                    ).then((accepted) {
+                      if (accepted != null && accepted) {
+                        // Navigate to the chessboard or handle accepted challenge
+                      }
+                    });
+                  }
+                });
+              }
+            }
+          });
+    }
+  }
+
+
 
   void setupUserListener() {
     var user = FirebaseAuth.instance.currentUser;
@@ -60,6 +106,7 @@ class UserHomePageState extends State<UserHomePage> {
   void dispose() {
     userSubscription.cancel();
     super.dispose();
+    challengeRequestsSubscription.cancel();
   }
 
   Future<Map<String, dynamic>?> fetchCurrentUserProfile() async {
@@ -97,6 +144,7 @@ class UserHomePageState extends State<UserHomePage> {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
+        
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 32.0),
           child: Column(
@@ -209,21 +257,39 @@ class UserHomePageState extends State<UserHomePage> {
     );
   }
 
-  Future<String> _sendChallenge(String opponentId, String betAmount) async {
-    String challengerId = FirebaseAuth.instance.currentUser!.uid;
-    CollectionReference challenges =
-    FirebaseFirestore.instance.collection('challenges');
+  // Function to send a challenge
+Future<String> _sendChallenge(String opponentId, String betAmount) async {
+  final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+  if (currentUserId != null) {
+    // Try to send the challenge and handle any potential errors
+    try {
+      DocumentReference challengeDocRef = await FirebaseFirestore.instance.collection('challengeRequests').add({
+        'challengerId': currentUserId,
+        'opponentId': opponentId,
+        'betAmount': betAmount,
+        'status': 'pending',
+        'timestamp': FieldValue.serverTimestamp(), // It's a good practice to store the time of the challenge
+      });
 
-    DocumentReference challengeDocRef = await challenges.add({
-      'challengerId': challengerId,
-      'opponentId': opponentId,
-      'betAmount': betAmount,
-      'status': 'pending',
-      'timestamp': FieldValue.serverTimestamp(),
-    });
+      // After sending the challenge, display an alert on the challenger's screen
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Challenge sent to $opponentId with bet $betAmount')),
+      );
 
-    return challengeDocRef.id;
+      // Return the challenge ID
+      return challengeDocRef.id;
+    } catch (e) {
+      // If sending the challenge fails, log the error and return an empty string or handle the error as needed
+      print('Error sending challenge: $e');
+      return ''; // Or handle the error appropriately
+    }
+  } else {
+    // If the user is not logged in, handle this case as well
+    print('User is not logged in.');
+    return ''; // Or handle the error appropriately
   }
+}
+
 
   Future<void> _respondToChallenge(String challengeId, bool isAccepted) async {
     CollectionReference challenges =
