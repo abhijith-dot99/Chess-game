@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mychessapp/pages/userprofiledetails.dart';
+
 import '../main.dart';
 import '../userprofiledetails.dart';
+import 'UserDetails.dart';
 
 class UserHomePage extends StatefulWidget {
   const UserHomePage({Key? key}) : super(key: key);
@@ -19,6 +21,9 @@ class UserHomePageState extends State<UserHomePage> {
   late Stream<List<DocumentSnapshot>> onlineUsersStream;
   String userLocation = 'Unknown';
   late StreamSubscription<DocumentSnapshot> userSubscription;
+
+  // Declare betAmount as a class field
+  String betAmount = '5\$'; // Default value
 
   @override
   void initState() {
@@ -45,6 +50,12 @@ class UserHomePageState extends State<UserHomePage> {
     }
   }
 
+  void navigateToUserDetails(BuildContext context, String userId) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) => UserDetailsPage(userId: userId),
+    ));
+  }
+
   @override
   void dispose() {
     userSubscription.cancel();
@@ -54,7 +65,10 @@ class UserHomePageState extends State<UserHomePage> {
   Future<Map<String, dynamic>?> fetchCurrentUserProfile() async {
     var user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      var doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      var doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
       return doc.exists ? doc.data() as Map<String, dynamic> : null;
     }
     return null;
@@ -69,13 +83,14 @@ class UserHomePageState extends State<UserHomePage> {
         .map((snapshot) => snapshot.docs);
   }
 
-  void _showChallengeModal(BuildContext context, Map<String, dynamic> opponentData) {
-    String betAmount = '5\$'; // Default value
-
+  void _showChallengeModal(
+      BuildContext context, Map<String, dynamic> opponentData) {
     // Function to update betAmount when a new value is selected in the dropdown
     void updateBetAmount(String? newBetAmount) {
       if (newBetAmount != null) {
-        betAmount = newBetAmount;
+        setState(() {
+          betAmount = newBetAmount;
+        });
       }
     }
 
@@ -100,7 +115,13 @@ class UserHomePageState extends State<UserHomePage> {
                   Text(opponentData['name'], style: TextStyle(fontSize: 20)),
                   ElevatedButton(
                     onPressed: () {
-                      // TODO: Navigate to user profile
+                      String? userId = opponentData['uid'];
+                      if (userId != null) {
+                        navigateToUserDetails(context, userId);
+                      } else {
+                        // Handle the null case, maybe show an error message
+                        print(opponentData);
+                      }
                     },
                     child: Text('Visit'),
                   ),
@@ -120,19 +141,21 @@ class UserHomePageState extends State<UserHomePage> {
                         child: Text(value),
                       );
                     }).toList(),
-                    onChanged: (newValue) {
-                      // Update the bet amount
-                      //  setModalState(() {
-                      //       betAmount = newValue ?? betAmount;
-                      //     });
-                    },
+                    onChanged: updateBetAmount,
                   ),
                 ],
               ),
               ElevatedButton(
-                onPressed: () {
-                  _sendChallenge(opponentData['uid'], betAmount);
-                  Navigator.pop(context); // Close the modal after sending the challenge
+                onPressed: () async {
+                  // Send challenge request and get the challengeId
+                  String challengeId =
+                  await _sendChallenge(opponentData['uid'], betAmount);
+
+                  // Show opponent response dialog
+                  _showOpponentResponseDialog(context, challengeId);
+
+                  // Close the modal after sending the challenge
+                  Navigator.pop(context);
                 },
                 child: const Text('Challenge'),
               ),
@@ -142,50 +165,73 @@ class UserHomePageState extends State<UserHomePage> {
       },
     );
   }
-Future<void> _sendChallenge(String opponentId, String betAmount) async {
-  String challengerId = FirebaseAuth.instance.currentUser!.uid;
-  CollectionReference challenges = FirebaseFirestore.instance.collection('challenges');
 
-  return challenges.add({
-    'challengerId': challengerId,
-    'opponentId': opponentId,
-    'betAmount': betAmount,
-    'status': 'pending',
-    'timestamp': FieldValue.serverTimestamp(),
-  }).then((docRef) {
-    // Challenge created successfully
-    // You can now notify the opponent
-    notifyOpponent(opponentId, docRef.id, challengerId, betAmount);
-  }).catchError((error) {
-     // Check if the opponentId and betAmount are not null.
- 
-    if (kDebugMode) {
-      print('Opponent ID or Bet Amount is null');
-    }
- 
-    // Handle any errors here
-  });
+  Future<void> _showOpponentResponseDialog(
+      BuildContext context, String challengeId) async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Challenge Request'),
+          content: Column(
+            children: [
+              // Now, you can access betAmount directly
+              Text('You have been challenged with a bet of $betAmount.'),
 
-  
-}
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      // Accept the challenge
+                      await _respondToChallenge(challengeId, true);
+                      Navigator.pop(context);
+                      MaterialPageRoute(
+                          builder: (context) => const ChessBoard());
+                    },
+                    child: Text('Accept'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      // Reject the challenge
+                      await _respondToChallenge(challengeId, false);
+                      Navigator.pop(context);
+                    },
+                    child: Text('Reject'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
+  Future<String> _sendChallenge(String opponentId, String betAmount) async {
+    String challengerId = FirebaseAuth.instance.currentUser!.uid;
+    CollectionReference challenges =
+    FirebaseFirestore.instance.collection('challenges');
 
-Future<void> notifyOpponent(String opponentId, String challengeId, String challengerId, String betAmount) async {
-  DocumentReference userRef = FirebaseFirestore.instance.collection('users').doc(opponentId);
+    DocumentReference challengeDocRef = await challenges.add({
+      'challengerId': challengerId,
+      'opponentId': opponentId,
+      'betAmount': betAmount,
+      'status': 'pending',
+      'timestamp': FieldValue.serverTimestamp(),
+    });
 
-  return userRef.collection('notifications').add({
-    'type': 'challenge',
-    'challengeId': challengeId,
-    'challengerId': challengerId,
-    'betAmount': betAmount,
-    'timestamp': FieldValue.serverTimestamp(),
-  }).then((_) {
-    // Notification added successfully
-  }).catchError((error) {
-    // Handle any errors here
-  });
-}
+    return challengeDocRef.id;
+  }
 
+  Future<void> _respondToChallenge(String challengeId, bool isAccepted) async {
+    CollectionReference challenges =
+    FirebaseFirestore.instance.collection('challenges');
+    await challenges.doc(challengeId).update({
+      'status': isAccepted ? 'accepted' : 'rejected',
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -196,7 +242,8 @@ Future<void> notifyOpponent(String opponentId, String challengeId, String challe
           FutureBuilder<Map<String, dynamic>?>(
             future: fetchCurrentUserProfile(),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+              if (snapshot.connectionState == ConnectionState.done &&
+                  snapshot.hasData) {
                 String avatarUrl = snapshot.data!['avatar'];
                 return IconButton(
                   icon: Container(
@@ -210,7 +257,8 @@ Future<void> notifyOpponent(String opponentId, String challengeId, String challe
                     ),
                   ),
                   onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const UserProfileDetailsPage()),
+                    MaterialPageRoute(
+                        builder: (context) => const UserProfileDetailsPage()),
                   ),
                 );
               }
@@ -236,7 +284,8 @@ Future<void> notifyOpponent(String opponentId, String challengeId, String challe
             children: [
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Text('Hi, $userName', style: Theme.of(context).textTheme.headline6),
+                child: Text('Hi, $userName',
+                    style: Theme.of(context).textTheme.headline6),
               ),
               Expanded(
                 child: StreamBuilder<List<DocumentSnapshot>>(
@@ -247,22 +296,26 @@ Future<void> notifyOpponent(String opponentId, String challengeId, String challe
                     }
 
                     if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(child: Text('No online players in your location'));
+                      return const Center(
+                          child: Text('No online players in your location'));
                     }
 
                     var currentUser = FirebaseAuth.instance.currentUser;
                     var filteredUsers = snapshot.data!
-                        .where((doc) => doc.id != currentUser!.uid) // Exclude current user
+                        .where((doc) =>
+                    doc.id != currentUser!.uid) // Exclude current user
                         .toList();
 
                     return GridView.builder(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                      const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         childAspectRatio: 3 / 2,
                       ),
                       itemCount: filteredUsers.length,
                       itemBuilder: (context, index) {
-                        var userData = filteredUsers[index].data() as Map<String, dynamic>;
+                        var userData =
+                        filteredUsers[index].data() as Map<String, dynamic>;
                         String initial = userData['name'][0].toUpperCase();
                         String? avatarUrl = userData['avatar'];
 
@@ -271,10 +324,12 @@ Future<void> notifyOpponent(String opponentId, String challengeId, String challe
                           child: Card(
                             child: ListTile(
                               leading: avatarUrl != null && avatarUrl.isNotEmpty
-                                  ? CircleAvatar(backgroundImage: AssetImage(avatarUrl))
+                                  ? CircleAvatar(
+                                  backgroundImage: AssetImage(avatarUrl))
                                   : CircleAvatar(child: Text(initial)),
                               title: Text(userData['name']),
-                              subtitle: Text(userData['location'] ?? 'Unknown location'),
+                              subtitle: Text(
+                                  userData['location'] ?? 'Unknown location'),
                             ),
                           ),
                         );
@@ -297,3 +352,4 @@ Future<void> notifyOpponent(String opponentId, String challengeId, String challe
     );
   }
 }
+
