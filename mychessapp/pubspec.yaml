@@ -24,6 +24,8 @@ flutter:
   assets:
     - assets/king.jpg
     - assets/location.jpg
+    - assets/chess_pieces/black/
+    - assets/chess_pieces/white/
     - assets/avatars/
 
 dev_dependencies:
