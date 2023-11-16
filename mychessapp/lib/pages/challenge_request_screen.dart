@@ -23,15 +23,14 @@ class ChallengeRequestScreen extends StatelessWidget {
 
   // Inside your challenge handling code
 
-
-
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text('Challenge Request'),
       content: Column(
         children: [
-          Text('You have been challenged by $challengerName with a bet of $betAmount.'),
+          Text(
+              'You have been challenged by $challengerName with a bet of $betAmount.'),
           SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -41,14 +40,19 @@ class ChallengeRequestScreen extends StatelessWidget {
                 onPressed: () async {
                   // Accept the challenge
                   // When a challenge is accepted and you're creating a new game
-                  String newGameId = await FirebaseGameService.createNewGame(challengerUID, opponentUID, challengeId);
-
+                  String newGameId = await FirebaseGameService.createNewGame(
+                      challengerUID, opponentUID, challengeId);
 
                   // Update the challenge request in Firestore
-                  FirebaseFirestore.instance.collection('challengeRequests').doc(challengeId).update({
+                  FirebaseFirestore.instance
+                      .collection('challengeRequests')
+                      .doc(challengeId)
+                      .update({
                     'status': 'accepted',
-                    'gameId': newGameId, // The ID of the newly created game
+                    'gameId': newGameId,
+                    // The ID of the newly created game
                   });
+                  print("opponet"+newGameId);
 
                   // Navigate to the ChessBoard
                   Navigator.pushReplacement(
@@ -61,12 +65,11 @@ class ChallengeRequestScreen extends StatelessWidget {
                 child: Text('Accept'),
               ),
 
-
-
               ElevatedButton(
                 onPressed: () {
                   // TODO: Reject the challenge
-                  Navigator.pop(context, false); // Pass false to indicate the challenge is rejected
+                  Navigator.pop(context,
+                      false); // Pass false to indicate the challenge is rejected
                 },
                 child: Text('Reject'),
               ),

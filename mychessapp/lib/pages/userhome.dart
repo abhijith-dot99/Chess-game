@@ -97,7 +97,7 @@ class UserHomePageState extends State<UserHomePage> {
           // Challenge accepted, navigate to the ChessBoard
           String gameId = challengeData[
               'gameId']; // Assuming the game ID is stored in the challenge data
-          print(gameId);
+          print("challenger"+gameId);
           Navigator.push(
             context,
             MaterialPageRoute(
